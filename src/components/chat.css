@@ -281,18 +281,6 @@
   margin-bottom: 2px;
 }
 
-.gestor-fichas .message-bot {
-  background: var(--message-other);
-  align-self: flex-start;
-  border-bottom-left-radius: 2px;
-}
-
-.gestor-fichas .message-user {
-  background: var(--message-own);
-  align-self: flex-end;
-  border-bottom-right-radius: 2px;
-}
-
 .gestor-fichas .message-time {
   font-size: 11px;
   color: var(--text-secondary);
@@ -579,4 +567,36 @@
     position: relative;
     transform: none;
   }
+}
+
+.message-admin {
+  align-self: flex-start;
+  background: #ffe7ba; /* tono diferente al bot */
+  color: #333;
+  border: 1px solid #f0ad4e;
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+  margin: 6px 0;
+}
+
+.message-bot {
+  align-self: flex-start;
+  background: #e9f5ff;
+  color: #333;
+  border: 1px solid #b6e0fe;
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+  margin: 6px 0;
+}
+
+.message-user {
+  align-self: flex-end;
+  background: #007bff;
+  color: #fff;
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+  margin: 6px 0;
 }

@@ -18,9 +18,16 @@ import './chat.css';
 // Componente para las burbujas de mensaje
 const MessageBubble = ({ message }) => {
   const { content, sender, time } = message;
-  
+
+  // Mapear clases CSS según rol
+  const roleClass = sender === "user"
+    ? "message-user"
+    : sender === "admin"
+      ? "message-admin"
+      : "message-bot";
+
   return (
-    <div className={`message message-${sender}`}>
+    <div className={`message ${roleClass}`}>
       {React.isValidElement(content) ? (
         content
       ) : typeof content === 'string' && content.includes('<') ? (
@@ -32,6 +39,7 @@ const MessageBubble = ({ message }) => {
     </div>
   );
 };
+
 
 const ChatUser = () => {
   const [theme, setTheme] = useState('dark');
@@ -281,21 +289,49 @@ const ChatUser = () => {
       return;
     }
 
-    // Procesar mensaje libre (aquí iría la integración con la API)
-    addMessage('Mensaje recibido. Un asesor te contactará pronto.', 'bot');
-    addMainOptions();
-    
+    // 🔥 Aquí hacemos la llamada real a n8n (/chat-user)
+    try {
+      const response = await fetch("https://infinitycta.app.n8n.cloud/webhook/chat-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telefono: userPhone,
+          mensaje: m,
+        }),
+      });
+
+      const data = await response.json();
+
+      // Renderizamos lo que responde n8n
+      if (data.reply) {
+        addMessage(data.reply, data.rol || "bot");
+      }
+
+      // Si hay opciones, las renderizas en botones
+      if (data.options && Array.isArray(data.options)) {
+        addMessage(
+          <div className="action-buttons" style={{ marginTop: 6 }}>
+            {data.options.map((opt, idx) => (
+              <button
+                key={idx}
+                className="action-btn"
+                onClick={() => handleQuickOption(opt)}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>,
+          "bot"
+        );
+      }
+    } catch (err) {
+      console.error("Error llamando a chat-user:", err);
+      addMessage("⚠️ Hubo un error procesando tu mensaje. Intenta nuevamente.", "bot");
+    }
+
     setIsTyping(false);
   };
 
-  // Enviar mensaje
-  const sendMessage = async () => {
-    const message = inputValue.trim();
-    if (!message) return;
-    addMessage(message, 'user');
-    setInputValue('');
-    await processUserMessage(message);
-  };
 
   // Manejar acciones pendientes
   const handlePendingAction = async (text) => {
@@ -356,11 +392,11 @@ const ChatUser = () => {
   // Simulación de login
   const handleLogin = async (phone) => {
     await new Promise(res => setTimeout(res, 1500));
-    
+
     // Simulación: algunos números son "encontrados", otros no
     const existingNumbers = ['+5491123456789', '+5491987654321'];
     const normalizedPhone = phone.startsWith('+') ? phone : '+549' + phone.replace(/^0+/, '');
-    
+
     if (existingNumbers.includes(normalizedPhone) || existingNumbers.includes(phone)) {
       addMessage('✅ Usuario verificado.', 'bot');
       setIsRegistered(true);
@@ -422,14 +458,14 @@ const ChatUser = () => {
                 </button>
               </div>
             </div>
-            
+
             {!sidebarCollapsed && (
               <div className="search-container">
                 <div className="search-box position-relative">
                   <FontAwesomeIcon icon={faSearch} />
-                  <input 
-                    type="text" 
-                    className="form-control" 
+                  <input
+                    type="text"
+                    className="form-control"
                     placeholder="Buscar o iniciar conversación"
                     onFocus={initializeChat}
                   />
@@ -445,8 +481,8 @@ const ChatUser = () => {
                 <FontAwesomeIcon icon={faComments} />
                 <h2>Gestor de Fichas</h2>
                 <p>Ingresa tu número de teléfono para comenzar</p>
-                <button 
-                  className="btn btn-primary mt-3" 
+                <button
+                  className="btn btn-primary mt-3"
                   onClick={initializeChat}
                 >
                   Iniciar Chat
@@ -478,7 +514,7 @@ const ChatUser = () => {
                   {messages.map((message, i) => (
                     <MessageBubble key={i} message={message} />
                   ))}
-                  
+
                   {isTyping && (
                     <div className="typing-indicator d-flex align-items-center">
                       <div className="typing-dots">
