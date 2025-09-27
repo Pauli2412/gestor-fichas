@@ -10,6 +10,7 @@ import {
   faBars,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
+import "./AdminPanel.css"; // Importar el CSS
 
 const AdminPanel = () => {
   const [activeMenu, setActiveMenu] = useState("conversations");
@@ -32,128 +33,150 @@ const AdminPanel = () => {
   const [complaints, setComplaints] = useState([]);
   const [loadingComplaints, setLoadingComplaints] = useState(false);
 
-  // Funciones existentes (mantener toda la lógica original)
+  // 🔹 Cargar conversaciones activas
   useEffect(() => {
     if (activeMenu === "conversations") {
-      // Simular datos para demo
-      setConversations([
-        { telefono: "123456789", nombre: "Juan Pérez" },
-        { telefono: "987654321", nombre: "María González" },
-        { telefono: "555666777", nombre: "Carlos López" }
-      ]);
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/conversations`)
+        .then((res) => res.json())
+        .then((data) => setConversations(data.conversations || []))
+        .catch((err) => console.error("Error cargando conversaciones:", err));
     }
   }, [activeMenu]);
 
+  // 🔹 Cargar historial cuando se selecciona una conversación
   useEffect(() => {
     if (selectedConversation) {
-      // Simular historial de chat para demo
-      setChatHistory([
-        {
-          rol: "user",
-          contenido: "Hola, necesito ayuda con mi cuenta",
-          createdAt: new Date().toISOString()
-        },
-        {
-          rol: "bot",
-          contenido: "¡Hola! Te puedo ayudar con tu consulta. ¿Qué problema tienes?",
-          createdAt: new Date().toISOString()
-        },
-        {
-          rol: "user",
-          contenido: "No puedo acceder a mi cuenta",
-          createdAt: new Date().toISOString()
-        }
-      ]);
+      fetch(`${import.meta.env.VITE_N8N_BASE}/chat-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telefono: selectedConversation.telefono }),
+      })
+        .then((res) => res.json())
+        .then((data) => setChatHistory(data.history || []))
+        .catch((err) => console.error("Error cargando historial:", err));
     }
   }, [selectedConversation]);
 
+  // 🔹 Enviar respuesta del admin
   const handleSendAdminMessage = async () => {
     if (!adminMessage.trim() || !selectedConversation) return;
 
-    const newMsg = {
-      rol: "admin",
-      contenido: adminMessage,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_N8N_BASE}/admin/respond`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            telefono: selectedConversation.telefono,
+            mensaje: adminMessage,
+          }),
+        }
+      );
 
-    setChatHistory((prev) => [...prev, newMsg]);
-    setAdminMessage("");
+      if (!response.ok) throw new Error("Error enviando mensaje");
+
+      // 💾 Guardar mensaje en UI
+      const newMsg = {
+        rol: "admin",
+        contenido: adminMessage,
+        createdAt: new Date().toISOString(),
+      };
+
+      setChatHistory((prev) => [...prev, newMsg]);
+      setAdminMessage(""); // limpiar input
+    } catch (err) {
+      console.error("Error enviando mensaje admin:", err);
+      alert("⚠️ No se pudo enviar el mensaje.");
+    }
   };
 
+  // 🔹 Buscar usuario
   const handleSearchUser = async () => {
     if (!searchQuery.trim()) return;
-    
-    // Simular búsqueda para demo
-    setSearchResult({
-      nombre: "Usuario Demo",
-      telefono: searchQuery,
-      cuil: "20-12345678-9",
-      plataformas: ["WhatsApp", "Telegram"]
-    });
-    
-    setSearchHistory([
-      {
-        rol: "user",
-        contenido: "Consulta sobre servicios",
-        createdAt: new Date().toISOString()
+
+    try {
+      // 1. Buscar datos del usuario
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/search-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchQuery }),
+      });
+
+      if (!res.ok) throw new Error("Error buscando usuario");
+      const data = await res.json();
+
+      if (!data.user) {
+        alert("Usuario no encontrado");
+        setSearchResult(null);
+        setSearchHistory([]);
+        return;
       }
-    ]);
+
+      setSearchResult(data.user);
+
+      // 2. Cargar historial
+      const histRes = await fetch(`${import.meta.env.VITE_N8N_BASE}/chat-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telefono: data.user.telefono }),
+      });
+
+      const histData = await histRes.json();
+      setSearchHistory(histData.history || []);
+    } catch (err) {
+      console.error("Error en búsqueda:", err);
+      alert("⚠️ No se pudo buscar el usuario.");
+    }
   };
 
+  // Cargar usuarios pendientes
   const fetchPendingUsers = async () => {
     setLoadingPending(true);
-    // Simular datos para demo
-    setTimeout(() => {
-      setPendingUsers([
-        {
-          id: 1,
-          nombre: "Ana García",
-          phone: "123456789",
-          cuil: "27-12345678-0",
-          plataformas: "WhatsApp"
-        },
-        {
-          id: 2,
-          nombre: "Pedro Martínez",
-          phone: "987654321",
-          cuil: "20-87654321-5",
-          plataformas: "Telegram"
-        }
-      ]);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/pending-users`);
+      const data = await res.json();
+      setPendingUsers(data.users || []);
+    } catch (err) {
+      console.error("Error cargando usuarios pendientes:", err);
+      alert("⚠️ No se pudieron cargar los usuarios pendientes.");
+    } finally {
       setLoadingPending(false);
-    }, 1000);
+    }
   };
 
+  // Aprobar usuario
   const handleApproveUser = async (userId) => {
-    alert("Usuario aprobado ✅");
-    fetchPendingUsers();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/approve-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) throw new Error("Error aprobando usuario");
+      alert("Usuario aprobado ✅");
+      fetchPendingUsers();
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ No se pudo aprobar el usuario.");
+    }
   };
 
+  // Rechazar usuario
   const handleRejectUser = async (userId) => {
-    alert("Usuario rechazado ❌");
-    fetchPendingUsers();
-  };
-
-  const fetchComplaints = async () => {
-    setLoadingComplaints(true);
-    // Simular datos para demo
-    setTimeout(() => {
-      setComplaints([
-        {
-          id: 1,
-          mensaje: "Problema con el servicio de atención",
-          estado: "pendiente",
-          user: { nombre: "Luis Rodríguez", telefono: "555123456" },
-          createdAt: new Date().toISOString()
-        }
-      ]);
-      setLoadingComplaints(false);
-    }, 1000);
-  };
-
-  const updateComplaintStatus = async (id, estado) => {
-    alert(`Reclamo marcado como ${estado}`);
-    fetchComplaints();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/reject-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) throw new Error("Error rechazando usuario");
+      alert("Usuario rechazado ❌");
+      fetchPendingUsers();
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ No se pudo rechazar el usuario.");
+    }
   };
 
   useEffect(() => {
@@ -161,6 +184,38 @@ const AdminPanel = () => {
       fetchPendingUsers();
     }
   }, [activeMenu]);
+
+  // Cargar reclamos
+  const fetchComplaints = async () => {
+    setLoadingComplaints(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/complaints`);
+      const data = await res.json();
+      setComplaints(data.complaints || []);
+    } catch (err) {
+      console.error("Error cargando reclamos:", err);
+      alert("⚠️ No se pudieron cargar los reclamos.");
+    } finally {
+      setLoadingComplaints(false);
+    }
+  };
+
+  // Actualizar estado de un reclamo
+  const updateComplaintStatus = async (id, estado) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/complaints/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, estado }),
+      });
+      if (!res.ok) throw new Error("Error actualizando reclamo");
+      alert(`Reclamo marcado como ${estado}`);
+      fetchComplaints();
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ No se pudo actualizar el reclamo.");
+    }
+  };
 
   useEffect(() => {
     if (activeMenu === "complaints") {
@@ -503,4 +558,6 @@ const AdminPanel = () => {
       </div>
     </div>
   );
-}
+};
+
+export default AdminPanel;
