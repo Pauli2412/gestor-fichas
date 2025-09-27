@@ -18,6 +18,14 @@
   --border-color: #313d45;
   --message-own: #005c4b;
   --message-other: #202c33;
+  --message-admin-bg: #3a2a0f;
+  --message-admin-border: #f0ad4e;
+  --message-admin-text: #ffd700;
+  --message-bot-bg: #1a2332;
+  --message-bot-border: #4a90e2;
+  --message-bot-text: #e9edef;
+  --message-user-bg: #005c4b;
+  --message-user-text: #ffffff;
 }
 
 [data-theme="light"] {
@@ -31,6 +39,14 @@
   --border-color: #e9edef;
   --message-own: #d9fdd3;
   --message-other: #ffffff;
+  --message-admin-bg: #fff3cd;
+  --message-admin-border: #f0ad4e;
+  --message-admin-text: #856404;
+  --message-bot-bg: #e9f5ff;
+  --message-bot-border: #b6e0fe;
+  --message-bot-text: #333333;
+  --message-user-bg: #007bff;
+  --message-user-text: #ffffff;
 }
 
 /* Contenedor principal fullscreen */
@@ -490,6 +506,39 @@
   color: var(--text-secondary);
 }
 
+/* Message Types - Usando variables CSS para los colores */
+.gestor-fichas .message-admin {
+  align-self: flex-start;
+  background: var(--message-admin-bg);
+  color: var(--message-admin-text);
+  border: 1px solid var(--message-admin-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+  margin: 6px 0;
+}
+
+.gestor-fichas .message-bot {
+  align-self: flex-start;
+  background: var(--message-bot-bg);
+  color: var(--message-bot-text);
+  border: 1px solid var(--message-bot-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+  margin: 6px 0;
+}
+
+.gestor-fichas .message-user {
+  align-self: flex-end;
+  background: var(--message-user-bg);
+  color: var(--message-user-text);
+  border-radius: 12px;
+  padding: 8px 12px;
+  max-width: 70%;
+  margin: 6px 0;
+}
+
 /* Responsive para móviles */
 @media (max-width: 768px) {
   .gestor-fichas .sidebar {
@@ -567,36 +616,4 @@
     position: relative;
     transform: none;
   }
-}
-
-.message-admin {
-  align-self: flex-start;
-  background: #ffe7ba; /* tono diferente al bot */
-  color: #333;
-  border: 1px solid #f0ad4e;
-  border-radius: 12px;
-  padding: 8px 12px;
-  max-width: 70%;
-  margin: 6px 0;
-}
-
-.message-bot {
-  align-self: flex-start;
-  background: #e9f5ff;
-  color: #333;
-  border: 1px solid #b6e0fe;
-  border-radius: 12px;
-  padding: 8px 12px;
-  max-width: 70%;
-  margin: 6px 0;
-}
-
-.message-user {
-  align-self: flex-end;
-  background: #007bff;
-  color: #fff;
-  border-radius: 12px;
-  padding: 8px 12px;
-  max-width: 70%;
-  margin: 6px 0;
 }
