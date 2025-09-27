@@ -412,40 +412,15 @@ const ChatUser = () => {
 const handleLogin = async (phone) => {
   try {
     const data = await lookupUsuario(phone);
+    // DEBUG:
+    console.log('lookup response', data);
 
-    const ok =
-      data?.status === "ok" ||
-      data?.ok === true ||
-      data?.found === true;
-    const user =
-      data?.meta?.user ??
-      data?.usuario ??
-      (ok && {
-        nombre: data?.nombre,
-        telefono: data?.telefono ?? data?.phone,
-        cuil: data?.cuil,
-        plataformas: Array.isArray(data?.plataformas)
-          ? data.plataformas
-          : typeof data?.plataformas === "string"
-            ? data.plataformas.split(",").map(s => s.trim()).filter(Boolean)
-            : [],
-      });
+    if (data?.status === "ok" && data?.meta?.user) {
+      const u = data.meta.user;
+      const plataformasTxt = Array.isArray(u.plataformas) ? u.plataformas.join(', ') : '';
 
-    if (ok && user?.nombre) {
+      addMessage(`✅ Usuario detectado: ${u.nombre}${plataformasTxt ? `\nPlataformas: ${plataformasTxt}` : ''}`, "bot");
       setIsRegistered(true);
-      setUserPhone(user.telefono || phone);
-
-      // Mensaje 1: saludo con nombre
-      addMessage(`✅ Usuario detectado: ${user.nombre}`, "bot");
-
-      // Mensaje 2: plataformas (si hay)
-      if (user.plataformas && user.plataformas.length > 0) {
-        const list = user.plataformas.map(p => `• ${p}`).join("\n");
-        addMessage(`📋 Plataformas registradas:\n${list}`, "bot");
-      } else {
-        addMessage("📋 No registramos plataformas aún para este usuario.", "bot");
-      }
-
       addMainOptions();
     } else {
       addMessage("ℹ️ No encontramos tu usuario. ¿Deseas registrarte para avanzar?", "bot");
@@ -458,6 +433,7 @@ const handleLogin = async (phone) => {
     setIsRegistered(false);
   }
 };
+
 
 
   // Simulación de retiro
