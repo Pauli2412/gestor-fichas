@@ -325,6 +325,21 @@ const ChatUser = () => {
     setIsTyping(false);
   };
 
+  // Enviar mensaje desde el input
+  const sendMessage = () => {
+    const text = inputValue.trim();
+    if (!text) return;
+
+    // Mostrar mensaje en el chat
+    addMessage(text, "user");
+
+    // Procesar mensaje con toda la lógica
+    processUserMessage(text);
+
+    // Limpiar input
+    setInputValue("");
+  };
+
   // Manejar acciones pendientes
   const handlePendingAction = async (text) => {
     switch (pendingAction) {
