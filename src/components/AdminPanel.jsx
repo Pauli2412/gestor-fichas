@@ -372,7 +372,7 @@ const AdminPanel = () => {
           </ul>
 
           <div className="sidebar-footer">
-            <button className="logout-btn">
+            <button className="logout-btn" href="/admin/login">
               <FontAwesomeIcon icon={faSignOutAlt} className="nav-icon" />
               <span>Salir</span>
             </button>
