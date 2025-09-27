@@ -14,6 +14,14 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './chat.css';
+import {
+  lookupUsuario,
+  nuevoUsuario,
+  sendRetiro,
+  sendReclamo,
+  getHistorial
+} from "../services/api";
+
 
 // Componente para las burbujas de mensaje
 const MessageBubble = ({ message }) => {
