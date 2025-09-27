@@ -252,7 +252,6 @@ const ChatUser = () => {
 
     const m = String(message || '').trim();
 
-    // Cancelación global
     if (m.toLowerCase() === 'cancelar') {
       setPendingAction(null);
       setTempData({});
@@ -262,7 +261,6 @@ const ChatUser = () => {
       return;
     }
 
-    // Si no hay teléfono, validar
     if (!userPhone) {
       const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,15}$/;
       if (phoneRegex.test(m.replace(/\s/g, ''))) {
@@ -275,23 +273,20 @@ const ChatUser = () => {
       return;
     }
 
-    // Si hay acción pendiente, procesarla
     if (pendingAction) {
       await handlePendingAction(m);
       setIsTyping(false);
       return;
     }
 
-    // Solo permitir acciones si está registrado
     if (!isRegistered) {
       addMessage('ℹ️ Primero verifica tu número o completa el registro.', 'bot');
       setIsTyping(false);
       return;
     }
 
-    // 🔥 Aquí hacemos la llamada real a n8n (/chat-user)
     try {
-      const response = await fetch("https://infinitycta.app.n8n.cloud/webhook/chat-user", {
+      const response = await fetch(`${import.meta.env.VITE_N8N_BASE}/chat-user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -302,12 +297,10 @@ const ChatUser = () => {
 
       const data = await response.json();
 
-      // Renderizamos lo que responde n8n
       if (data.reply) {
         addMessage(data.reply, data.rol || "bot");
       }
 
-      // Si hay opciones, las renderizas en botones
       if (data.options && Array.isArray(data.options)) {
         addMessage(
           <div className="action-buttons" style={{ marginTop: 6 }}>
@@ -331,7 +324,6 @@ const ChatUser = () => {
 
     setIsTyping(false);
   };
-
 
   // Manejar acciones pendientes
   const handlePendingAction = async (text) => {
