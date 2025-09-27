@@ -409,28 +409,56 @@ const ChatUser = () => {
   };
 
   // Simulación de login
-  const handleLogin = async (phone) => {
-    try {
-      const data = await lookupUsuario(phone);
+const handleLogin = async (phone) => {
+  try {
+    const data = await lookupUsuario(phone);
 
-      if (isOk && user) {
-        addMessage(`✅ Usuario detectado: ${user.nombre}`, "bot");
-        if (Array.isArray(user.plataformas) && user.plataformas.length) {
-          addMessage(`📋 Plataformas: ${user.plataformas.join(", ")}`, "bot");
-        }
-        setIsRegistered(true);
-        addMainOptions();
+    const ok =
+      data?.status === "ok" ||
+      data?.ok === true ||
+      data?.found === true;
+    const user =
+      data?.meta?.user ??
+      data?.usuario ??
+      (ok && {
+        nombre: data?.nombre,
+        telefono: data?.telefono ?? data?.phone,
+        cuil: data?.cuil,
+        plataformas: Array.isArray(data?.plataformas)
+          ? data.plataformas
+          : typeof data?.plataformas === "string"
+            ? data.plataformas.split(",").map(s => s.trim()).filter(Boolean)
+            : [],
+      });
+
+    if (ok && user?.nombre) {
+      setIsRegistered(true);
+      setUserPhone(user.telefono || phone);
+
+      // Mensaje 1: saludo con nombre
+      addMessage(`✅ Usuario detectado: ${user.nombre}`, "bot");
+
+      // Mensaje 2: plataformas (si hay)
+      if (user.plataformas && user.plataformas.length > 0) {
+        const list = user.plataformas.map(p => `• ${p}`).join("\n");
+        addMessage(`📋 Plataformas registradas:\n${list}`, "bot");
       } else {
-        addMessage("ℹ️ No encontramos tu usuario. ¿Deseas registrarte para avanzar?", "bot");
-        addRegisterAskOptions();
-        setIsRegistered(false);
+        addMessage("📋 No registramos plataformas aún para este usuario.", "bot");
       }
-    } catch (err) {
-      console.error("Error consultando /lookup-usuario:", err);
-      addMessage("⚠️ Hubo un error consultando tu usuario. Intenta más tarde.", "bot");
+
+      addMainOptions();
+    } else {
+      addMessage("ℹ️ No encontramos tu usuario. ¿Deseas registrarte para avanzar?", "bot");
+      addRegisterAskOptions();
       setIsRegistered(false);
     }
-  };
+  } catch (err) {
+    console.error("Error consultando /lookup-usuario:", err);
+    addMessage("⚠️ Hubo un error consultando tu usuario. Intenta más tarde.", "bot");
+    setIsRegistered(false);
+  }
+};
+
 
   // Simulación de retiro
   const handleWithdraw = async (monto, plataforma) => {
