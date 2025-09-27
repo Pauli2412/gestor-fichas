@@ -258,12 +258,19 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: none; /* Elimina el fondo para que la imagen se vea bien */
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
+  overflow: hidden; /* Asegura que la imagen no se salga del círculo */
+}
+
+.gestor-fichas .chat-avatar .avatar-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ajusta la imagen para que llene el círculo sin distorsionarse */
 }
 
 .gestor-fichas .chat-info h3 {

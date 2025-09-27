@@ -102,25 +102,34 @@ const ChatUser = () => {
 
   const resetInactivityTimer = () => {
     if (inactivityTimer) clearTimeout(inactivityTimer);
+
     const t = setTimeout(() => {
-      addMessage(
-        '⏰ La conversación se cerró por inactividad. ¡Gracias por contactarnos!',
-        'bot'
-      );
-      setChatActive(false);
-      setUserPhone('');
-      setIsRegistered(false);
-      setPendingAction(null);
-      setTempData({});
-    }, 5 * 60 * 1000); // 5 minutos
+        setMessages((prev) => [
+            ...prev, 
+            { 
+                content: '⏰ La conversación se cerró por inactividad. ¡Gracias por contactarnos!',
+                sender: 'bot',
+                time: nowTime() 
+            }
+        ]);
+        
+        setChatActive(false);
+        setUserPhone('');
+        setIsRegistered(false);
+        setPendingAction(null);
+        setTempData({});
+        
+        setInactivityTimer(null);
+
+    }, 5 * 60 * 1000); 
+
     setInactivityTimer(t);
-  };
+};
 
   // Agregar mensaje
   const addMessage = (content, sender) => {
     setMessages((prev) => [...prev, { content, sender, time: nowTime() }]);
-    resetInactivityTimer();
-  };
+};
 
   // Opciones principales después del login
   const addMainOptions = () => {
@@ -337,16 +346,11 @@ const ChatUser = () => {
   const sendMessage = () => {
     const text = inputValue.trim();
     if (!text) return;
-
-    // Mostrar mensaje en el chat
-    addMessage(text, "user");
-
-    // Procesar mensaje con toda la lógica
+    addMessage(text, "user"); 
+    resetInactivityTimer();
     processUserMessage(text);
-
-    // Limpiar input
     setInputValue("");
-  };
+};
 
   // Manejar acciones pendientes
   const handlePendingAction = async (text) => {
@@ -514,22 +518,15 @@ const ChatUser = () => {
                       <FontAwesomeIcon icon={faBars} />
                     </button>
                   )}
-
-                  {/* El contenedor principal para la imagen y el texto a su lado */}
-                  <div className="d-flex align-items-center">
-                    {/* Nuevo: Reemplazo del icono del robot por la imagen */}
-                    <div className="chat-avatar">
-                      <img src="icon.jpeg" alt="Icono del asistente" className="robot-icon-img" />
-                    </div>
-
-                    {/* Contiene los mensajes "Asistente de Fichas" y "En línea" */}
-                    <div className="chat-info ms-2"> {/* Agregamos un pequeño margen a la izquierda (ms-2) */}
-                      <h3>Asistente de Fichas</h3>
-                      <p className="status-indicator status-online mb-0">
-                        <FontAwesomeIcon icon={faCircle} />
-                        En línea
-                      </p>
-                    </div>
+                  <div className="chat-avatar">
+                    <img src="/path/to/your/icon.jpeg" alt="Icono de asistente" className="avatar-icon" />
+                  </div>
+                  <div className="chat-info">
+                    <h3>Asistente de Fichas</h3>
+                    <p className="status-indicator status-online mb-0">
+                      <FontAwesomeIcon icon={faCircle} />
+                      En línea
+                    </p>
                   </div>
                 </div>
                 {/* Messages Container */}
