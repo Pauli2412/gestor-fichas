@@ -165,7 +165,7 @@ const LoginAdmin = ({ onLogin }) => {
             </a>
           </div>
 
-          <Button type="submit" className="login-btn" disabled={loading}>
+          <Button type="submit" className="login-btn" disabled={loading} href="/admin/conversations">
             {loading ? (
               <>
                 <Spinner
