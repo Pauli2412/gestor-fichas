@@ -355,6 +355,36 @@
   transition: background 0.2s;
 }
 
+.gestor-fichas .welcome-controls {
+  position: absolute;
+  top: 15px; /* Distancia del borde superior */
+  right: 15px; /* Distancia del borde derecho */
+  display: flex;
+  gap: 10px; /* Espacio entre el botón de cerrar y el de tema */
+  z-index: 1100; /* Asegura que estén por encima de todo */
+}
+
+.gestor-fichas .close-chat-btn {
+  /* Copia los estilos de .theme-toggle o .sidebar-toggle */
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.gestor-fichas .close-chat-btn:hover {
+  background: var(--border-color);
+}
+
 .gestor-fichas .send-button:hover {
   background: #06a05e;
 }
@@ -368,6 +398,7 @@
   justify-content: center;
   text-align: center;
   padding: 40px;
+  position: relative; 
 }
 
 .gestor-fichas .welcome-screen svg {

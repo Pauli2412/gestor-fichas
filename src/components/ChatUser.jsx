@@ -104,32 +104,32 @@ const ChatUser = () => {
     if (inactivityTimer) clearTimeout(inactivityTimer);
 
     const t = setTimeout(() => {
-        setMessages((prev) => [
-            ...prev, 
-            { 
-                content: '⏰ La conversación se cerró por inactividad. ¡Gracias por contactarnos!',
-                sender: 'bot',
-                time: nowTime() 
-            }
-        ]);
-        
-        setChatActive(false);
-        setUserPhone('');
-        setIsRegistered(false);
-        setPendingAction(null);
-        setTempData({});
-        
-        setInactivityTimer(null);
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: '⏰ La conversación se cerró por inactividad. ¡Gracias por contactarnos!',
+          sender: 'bot',
+          time: nowTime()
+        }
+      ]);
 
-    }, 5 * 60 * 1000); 
+      setChatActive(false);
+      setUserPhone('');
+      setIsRegistered(false);
+      setPendingAction(null);
+      setTempData({});
+
+      setInactivityTimer(null);
+
+    }, 5 * 60 * 1000);
 
     setInactivityTimer(t);
-};
+  };
 
   // Agregar mensaje
   const addMessage = (content, sender) => {
     setMessages((prev) => [...prev, { content, sender, time: nowTime() }]);
-};
+  };
 
   // Opciones principales después del login
   const addMainOptions = () => {
@@ -346,11 +346,11 @@ const ChatUser = () => {
   const sendMessage = () => {
     const text = inputValue.trim();
     if (!text) return;
-    addMessage(text, "user"); 
+    addMessage(text, "user");
     resetInactivityTimer();
     processUserMessage(text);
     setInputValue("");
-};
+  };
 
   // Manejar acciones pendientes
   const handlePendingAction = async (text) => {
@@ -498,7 +498,18 @@ const ChatUser = () => {
           {/* Chat Area */}
           <div className="chat-area p-0 d-flex flex-column">
             {!chatActive ? (
-              <div className="welcome-screen d-flex flex-column align-items-center justify-content-center text-center h-100">
+              <div className="welcome-screen d-flex flex-column align-items-center justify-content-center text-center h-100 position-relative">
+                {/* Nuevo Contenedor de Controles */}
+                <div className="welcome-controls">
+                  <button className="close-chat-btn" onClick={() => setChatActive(false)} title="Cerrar chat">
+                    <FontAwesomeIcon icon={faTimes} />
+                  </button>
+                  <button className="theme-toggle" onClick={toggleTheme} title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}>
+                    <FontAwesomeIcon icon={faMoon} />
+                  </button>
+                </div>
+
+                {/* Contenido centrado de la bienvenida */}
                 <FontAwesomeIcon icon={faComments} />
                 <h2>Gestor de Fichas</h2>
                 <p>Ingresa tu número de teléfono para comenzar</p>
