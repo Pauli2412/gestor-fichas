@@ -93,6 +93,7 @@
   min-width: 70px;
 }
 
+/* SIDEBAR HEADER - SECCIÓN CRÍTICA PARA EVITAR SUPERPOSICIÓN */
 .gestor-fichas .sidebar-header {
   padding: 15px;
   background: var(--bg-tertiary);
@@ -104,12 +105,14 @@
 }
 
 .gestor-fichas .sidebar.collapsed .sidebar-header {
-  padding: 15px 8px;
+  padding: 20px 8px;
   flex-direction: column;
-  gap: 8px;
   justify-content: center;
+  gap: 15px;
+  min-height: 100px;
 }
 
+/* Logo */
 .gestor-fichas .logo {
   display: flex;
   align-items: center;
@@ -140,9 +143,46 @@
   display: none;
 }
 
+/* CONTROLES DEL HEADER - SOLUCIÓN PARA EVITAR SUPERPOSICIÓN */
+.gestor-fichas .header-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
 
-.gestor-fichas .sidebar.collapsed .sidebar-controls {
-  gap: 5px;
+.gestor-fichas .sidebar.collapsed .header-controls {
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Contenedores individuales para cada botón */
+.gestor-fichas .theme-control,
+.gestor-fichas .sidebar-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilos para los botones */
+.gestor-fichas .theme-toggle,
+.gestor-fichas .sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  min-width: 36px;
 }
 
 .gestor-fichas .theme-toggle:hover,
@@ -150,6 +190,7 @@
   background: var(--border-color);
 }
 
+/* Search Container */
 .gestor-fichas .search-container {
   padding: 15px;
   background: var(--bg-secondary);
@@ -198,6 +239,22 @@
   transition: margin-left 0.3s ease;
 }
 
+/* Chat header */
+.gestor-fichas .chat-header {
+  padding: 15px 20px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 70px;
+}
+
+.gestor-fichas .chat-header::after {
+  content: '';
+  flex: 1;
+}
+
 /* Mobile sidebar toggle button in chat header */
 .gestor-fichas .sidebar-toggle-mobile {
   background: none;
@@ -213,12 +270,52 @@
   justify-content: center;
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
 }
 
 .gestor-fichas .sidebar-toggle-mobile:hover {
   background: var(--border-color);
 }
 
+/* Avatar del chat */
+.gestor-fichas .chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gestor-fichas .chat-avatar .avatar-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Información del chat */
+.gestor-fichas .chat-info {
+  flex-shrink: 0;
+}
+
+.gestor-fichas .chat-info h3 {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.gestor-fichas .chat-info p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: nowrap;
+}
 
 .gestor-fichas .messages-container {
   flex: 1;
@@ -448,7 +545,7 @@
   color: var(--text-secondary);
 }
 
-/* Message Types - Usando variables CSS para los colores */
+/* Message Types */
 .gestor-fichas .message-admin {
   align-self: flex-start;
   background: var(--message-admin-bg);
@@ -512,7 +609,6 @@
     display: flex;
   }
   
-  /* Ocultar controles del sidebar en el header cuando está colapsado en móvil */
   .gestor-fichas .sidebar.collapsed .sidebar-header {
     display: none;
   }
@@ -531,7 +627,6 @@
     width: 100%;
   }
   
-  /* Overlay para cerrar sidebar */
   .gestor-fichas .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -548,126 +643,12 @@
   }
 }
 
-/* Solución 1: Mejorar el espaciado horizontal */
-.gestor-fichas .sidebar-controls {
-  display: flex;
-  gap: 12px; /* Aumentar el gap de 8px a 12px */
-  align-items: center;
-  flex-wrap: nowrap; /* Evitar que se envuelvan */
-}
-
-/* Asegurar que los botones tengan un tamaño fijo */
-.gestor-fichas .theme-toggle,
-.gestor-fichas .sidebar-toggle {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px; /* Aumentar de 32px a 36px */
-  height: 36px;
-  flex-shrink: 0; /* Evitar que se compriman */
-  min-width: 36px; /* Asegurar ancho mínimo */
-}
-
-
-
-
-
-
-/* Chat header - Modificar para alinear el texto junto al icono */
-.gestor-fichas .chat-header {
-  padding: 15px 20px;
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  min-height: 70px;
-  /* Remover justify-content: space-between si lo tienes */
-}
-
-/* El botón del sidebar móvil debe mantenerse a la izquierda */
-.gestor-fichas .sidebar-toggle-mobile {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.2s;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0; /* No se comprime */
-}
-
-/* Avatar del chat */
-.gestor-fichas .chat-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  overflow: hidden;
-  flex-shrink: 0; /* No se comprime */
-}
-
-.gestor-fichas .chat-avatar .avatar-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Información del chat - quitar margin auto o flex-grow si los tienes */
-.gestor-fichas .chat-info {
-  flex-shrink: 0; /* No se comprime */
-  /* Remover cualquier margin-left: auto o flex: 1 si los tienes */
-}
-
-.gestor-fichas .chat-info h3 {
-  font-size: 16px;
-  font-weight: 400;
-  margin: 0;
-  white-space: nowrap; /* Evita que se rompa en múltiples líneas */
-}
-
-.gestor-fichas .chat-info p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0;
-  white-space: nowrap; /* Evita que se rompa en múltiples líneas */
-}
-
-/* Si quieres que haya espacio adicional después del texto, agrega esto: */
-.gestor-fichas .chat-header::after {
-  content: '';
-  flex: 1; /* Esto empuja todo hacia la izquierda */
-}
-
-/* Para móviles, mantener la misma estructura */
-@media (max-width: 768px) {
+/* Desktop: sidebar behavior */
+@media (min-width: 769px) {
   .gestor-fichas .sidebar-toggle-mobile {
-    display: flex;
+    display: none !important;
   }
   
-  .gestor-fichas .chat-header {
-    gap: 10px; /* Reducir gap en móviles */
-  }
-
   .gestor-fichas .sidebar.collapsed {
     position: relative;
     transform: none;

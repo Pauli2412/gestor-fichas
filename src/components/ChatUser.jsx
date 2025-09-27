@@ -104,32 +104,32 @@ const ChatUser = () => {
     if (inactivityTimer) clearTimeout(inactivityTimer);
 
     const t = setTimeout(() => {
-        setMessages((prev) => [
-            ...prev, 
-            { 
-                content: '⏰ La conversación se cerró por inactividad. ¡Gracias por contactarnos!',
-                sender: 'bot',
-                time: nowTime() 
-            }
-        ]);
-        
-        setChatActive(false);
-        setUserPhone('');
-        setIsRegistered(false);
-        setPendingAction(null);
-        setTempData({});
-        
-        setInactivityTimer(null);
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: '⏰ La conversación se cerró por inactividad. ¡Gracias por contactarnos!',
+          sender: 'bot',
+          time: nowTime()
+        }
+      ]);
 
-    }, 5 * 60 * 1000); 
+      setChatActive(false);
+      setUserPhone('');
+      setIsRegistered(false);
+      setPendingAction(null);
+      setTempData({});
+
+      setInactivityTimer(null);
+
+    }, 5 * 60 * 1000);
 
     setInactivityTimer(t);
-};
+  };
 
   // Agregar mensaje
   const addMessage = (content, sender) => {
     setMessages((prev) => [...prev, { content, sender, time: nowTime() }]);
-};
+  };
 
   // Opciones principales después del login
   const addMainOptions = () => {
@@ -346,11 +346,11 @@ const ChatUser = () => {
   const sendMessage = () => {
     const text = inputValue.trim();
     if (!text) return;
-    addMessage(text, "user"); 
+    addMessage(text, "user");
     resetInactivityTimer();
     processUserMessage(text);
     setInputValue("");
-};
+  };
 
   // Manejar acciones pendientes
   const handlePendingAction = async (text) => {
@@ -470,13 +470,17 @@ const ChatUser = () => {
                 <FontAwesomeIcon icon={faCoins} />
                 {!sidebarCollapsed && <h1>Gestor de Fichas</h1>}
               </div>
-              <div className="sidebar-controls">
-                <button className="theme-toggle btn" onClick={toggleTheme} title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}>
-                  <FontAwesomeIcon icon={theme == 'dark' ? faMoon : faSun} />
-                </button>
-                <button className="sidebar-toggle btn" onClick={toggleSidebar} title={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}>
-                  <FontAwesomeIcon icon={sidebarCollapsed ? faBars : faTimes} />
-                </button>
+              <div className="header-controls">
+                <div className="theme-control">
+                  <button className="theme-toggle btn" onClick={toggleTheme} title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}>
+                    <FontAwesomeIcon icon={theme == 'dark' ? faMoon : faSun} />
+                  </button>
+                </div>
+                <div className="sidebar-control">
+                  <button className="sidebar-toggle btn" onClick={toggleSidebar} title={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}>
+                    <FontAwesomeIcon icon={sidebarCollapsed ? faBars : faTimes} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -494,7 +498,6 @@ const ChatUser = () => {
               </div>
             )}
           </div>
-
           {/* Chat Area */}
           <div className="chat-area p-0 d-flex flex-column">
             {!chatActive ? (
