@@ -259,13 +259,13 @@ const AdminPanel = () => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = (now - date) / (1000 * 60);
-    
+
     if (diffInMinutes < 1) return "Ahora";
     if (diffInMinutes < 60) return `hace ${Math.floor(diffInMinutes)}m`;
     if (diffInMinutes < 1440) return `hace ${Math.floor(diffInMinutes / 60)}h`;
-    
-    return date.toLocaleDateString("es-AR", { 
-      day: '2-digit', 
+
+    return date.toLocaleDateString("es-AR", {
+      day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
@@ -370,12 +370,11 @@ const AdminPanel = () => {
               </button>
             </li>
           </ul>
-
           <div className="sidebar-footer">
-            <button className="logout-btn" href="/admin/login">
+            <a className="logout-btn" href="/admin/login">
               <FontAwesomeIcon icon={faSignOutAlt} className="nav-icon" />
               <span>Salir</span>
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -428,9 +427,8 @@ const AdminPanel = () => {
                     filteredConversations.map((c, idx) => (
                       <div
                         key={idx}
-                        className={`conversation-item ${
-                          selectedConversation?.telefono === c.telefono ? "active" : ""
-                        }`}
+                        className={`conversation-item ${selectedConversation?.telefono === c.telefono ? "active" : ""
+                          }`}
                         onClick={() => setSelectedConversation(c)}
                       >
                         <div className="conversation-avatar">
@@ -441,7 +439,7 @@ const AdminPanel = () => {
                             <FontAwesomeIcon icon={faCircle} />
                           </div>
                         </div>
-                        
+
                         <div className="conversation-info">
                           <div className="conversation-main">
                             <strong className="conversation-name">
@@ -513,7 +511,7 @@ const AdminPanel = () => {
                           {chatHistory.map((m, idx) => (
                             <div
                               key={idx}
-                              className={`message-wrapper ${m.rol === "user" ? "user" : 
+                              className={`message-wrapper ${m.rol === "user" ? "user" :
                                 m.rol === "bot" ? "bot" : "admin"}`}
                             >
                               <div className="message-bubble">
@@ -562,8 +560,8 @@ const AdminPanel = () => {
                           }}
                           disabled={isTyping}
                         />
-                        <button 
-                          className="send-btn" 
+                        <button
+                          className="send-btn"
                           onClick={handleSendAdminMessage}
                           disabled={!adminMessage.trim() || isTyping}
                         >
@@ -624,7 +622,7 @@ const AdminPanel = () => {
                       <strong>
                         <FontAwesomeIcon icon={faPhone} />
                         Teléfono:
-                      </strong> 
+                      </strong>
                       {searchResult.telefono}
                     </div>
                     <div className="info-item">
@@ -768,7 +766,7 @@ const AdminPanel = () => {
                         {c.estado}
                       </span>
                     </div>
-                    
+
                     <div className="complaint-body">
                       <div className="complaint-message">
                         "{c.mensaje}"
