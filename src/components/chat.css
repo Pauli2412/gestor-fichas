@@ -147,7 +147,6 @@
 }
 
 .gestor-fichas .sidebar.collapsed .sidebar-controls {
-  flex-direction: column;
   gap: 5px;
 }
 
@@ -270,7 +269,7 @@
 .gestor-fichas .chat-avatar .avatar-icon {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Ajusta la imagen para que llene el círculo sin distorsionarse */
+  object-fit: cover; 
 }
 
 .gestor-fichas .chat-info h3 {
@@ -355,51 +354,11 @@
   transition: background 0.2s;
 }
 
-.gestor-fichas .welcome-controls {
-  position: absolute;
-  top: 15px; /* Distancia del borde superior */
-  right: 15px; /* Distancia del borde derecho */
-  display: flex;
-  gap: 10px; /* Espacio entre el botón de cerrar y el de tema */
-  z-index: 1100; /* Asegura que estén por encima de todo */
-}
-
-.gestor-fichas .close-chat-btn {
-  /* Copia los estilos de .theme-toggle o .sidebar-toggle */
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-.gestor-fichas .close-chat-btn:hover {
-  background: var(--border-color);
-}
-
 .gestor-fichas .send-button:hover {
   background: #06a05e;
 }
 
 /* Welcome Screen */
-.gestor-fichas .welcome-screen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px;
-  position: relative; 
-}
 
 .gestor-fichas .welcome-screen svg {
   font-size: 120px;
@@ -642,6 +601,51 @@
   .gestor-fichas .sidebar:not(.collapsed) ~ .sidebar-overlay {
     display: block;
   }
+}
+
+.gestor-fichas .welcome-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* Centra verticalmente el header y el botón */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  position: relative; /* Lo mantenemos para los botones de control */
+}
+
+/* 1. Nuevo contenedor principal para el ícono y el texto */
+.gestor-fichas .welcome-header-content {
+  display: flex;
+  align-items: center; /* Alinea ícono y texto verticalmente al centro */
+  gap: 20px; /* Espacio entre el ícono y el grupo de texto */
+  margin-bottom: 30px; /* Separación del botón u otros elementos inferiores */
+}
+
+/* 2. Modificamos el ícono */
+.gestor-fichas .welcome-header-content svg {
+  font-size: 80px; /* Reducimos el ícono para que no sea tan grande */
+  color: var(--text-secondary);
+  /* Eliminamos el margin-bottom: 30px que estaba en el CSS original */
+  margin-bottom: 0; 
+  flex-shrink: 0; /* Evita que el ícono se encoja */
+}
+
+/* 3. Estilos para el grupo de título/subtítulo */
+.gestor-fichas .welcome-title-group {
+    text-align: left; /* Alineamos el texto dentro del grupo a la izquierda */
+}
+
+.gestor-fichas .welcome-title-group h2 {
+  font-size: 32px;
+  font-weight: 300;
+  margin: 0; /* Eliminamos el margen inferior para que se acerque a <p> */
+}
+
+.gestor-fichas .welcome-title-group p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 5px; /* Pequeña separación entre h2 y p */
 }
 
 /* Desktop: ocultar el botón móvil del header */

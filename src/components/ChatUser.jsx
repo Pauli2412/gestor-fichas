@@ -499,20 +499,22 @@ const ChatUser = () => {
           <div className="chat-area p-0 d-flex flex-column">
             {!chatActive ? (
               <div className="welcome-screen d-flex flex-column align-items-center justify-content-center text-center h-100 position-relative">
-                {/* Nuevo Contenedor de Controles */}
+
+                {/* Controles (si ya los añadiste) */}
                 <div className="welcome-controls">
-                  <button className="close-chat-btn" onClick={() => setChatActive(false)} title="Cerrar chat">
-                    <FontAwesomeIcon icon={faTimes} />
-                  </button>
-                  <button className="theme-toggle" onClick={toggleTheme} title={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}>
-                    <FontAwesomeIcon icon={faMoon} />
-                  </button>
+                  {/* ... botones de tema y cerrar */}
                 </div>
 
-                {/* Contenido centrado de la bienvenida */}
-                <FontAwesomeIcon icon={faComments} />
-                <h2>Gestor de Fichas</h2>
-                <p>Ingresa tu número de teléfono para comenzar</p>
+                {/* Nuevo Contenedor para el Encabezado Centrado */}
+                <div className="welcome-header-content">
+                  <FontAwesomeIcon icon={faComments} />
+                  <div className="welcome-title-group"> {/* Agrupamos h2 y p */}
+                    <h2>Gestor de Fichas</h2>
+                    <p>Ingresa tu número de teléfono para comenzar</p>
+                  </div>
+                </div>
+
+                {/* El botón permanece abajo */}
                 <button
                   className="btn btn-primary mt-3"
                   onClick={initializeChat}
