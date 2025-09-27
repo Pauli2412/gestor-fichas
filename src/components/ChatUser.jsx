@@ -412,18 +412,25 @@ const ChatUser = () => {
 const handleLogin = async (phone) => {
   try {
     const data = await lookupUsuario(phone);
-    // DEBUG:
-    console.log('lookup response', data);
 
     if (data?.status === "ok" && data?.meta?.user) {
       const u = data.meta.user;
-      const plataformasTxt = Array.isArray(u.plataformas) ? u.plataformas.join(', ') : '';
+      const plataformasTxt = Array.isArray(u.plataformas)
+        ? u.plataformas.join(", ")
+        : "";
 
-      addMessage(`✅ Usuario detectado: ${u.nombre}${plataformasTxt ? `\nPlataformas: ${plataformasTxt}` : ''}`, "bot");
+      addMessage(
+        `✅ Usuario detectado: ${u.nombre}${plataformasTxt ? `\nPlataformas: ${plataformasTxt}` : ""}`,
+        "bot"
+      );
+
       setIsRegistered(true);
       addMainOptions();
     } else {
-      addMessage("ℹ️ No encontramos tu usuario. ¿Deseas registrarte para avanzar?", "bot");
+      addMessage(
+        "ℹ️ No encontramos tu usuario. ¿Deseas registrarte para avanzar?",
+        "bot"
+      );
       addRegisterAskOptions();
       setIsRegistered(false);
     }
@@ -433,6 +440,7 @@ const handleLogin = async (phone) => {
     setIsRegistered(false);
   }
 };
+
 
 
 
