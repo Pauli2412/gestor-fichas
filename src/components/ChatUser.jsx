@@ -519,7 +519,7 @@ const ChatUser = () => {
                     </button>
                   )}
                   <div className="chat-avatar">
-                    <img src="/path/to/your/icon.jpeg" alt="Icono de asistente" className="avatar-icon" />
+                    <img src="icon.jpeg" alt="Icono de asistente" className="avatar-icon" />
                   </div>
                   <div className="chat-info">
                     <h3>Asistente de Fichas</h3>
