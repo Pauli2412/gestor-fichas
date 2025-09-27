@@ -514,18 +514,24 @@ const ChatUser = () => {
                       <FontAwesomeIcon icon={faBars} />
                     </button>
                   )}
-                  <div className="chat-avatar">
-                    <FontAwesomeIcon icon={faRobot} />
-                  </div>
-                  <div className="chat-info">
-                    <h3>Asistente de Fichas</h3>
-                    <p className="status-indicator status-online mb-0">
-                      <FontAwesomeIcon icon={faCircle} />
-                      En línea
-                    </p>
+
+                  {/* El contenedor principal para la imagen y el texto a su lado */}
+                  <div className="d-flex align-items-center">
+                    {/* Nuevo: Reemplazo del icono del robot por la imagen */}
+                    <div className="chat-avatar">
+                      <img src="icon.jpeg" alt="Icono del asistente" className="robot-icon-img" />
+                    </div>
+
+                    {/* Contiene los mensajes "Asistente de Fichas" y "En línea" */}
+                    <div className="chat-info ms-2"> {/* Agregamos un pequeño margen a la izquierda (ms-2) */}
+                      <h3>Asistente de Fichas</h3>
+                      <p className="status-indicator status-online mb-0">
+                        <FontAwesomeIcon icon={faCircle} />
+                        En línea
+                      </p>
+                    </div>
                   </div>
                 </div>
-
                 {/* Messages Container */}
                 <div className="messages-container flex-grow-1">
                   {messages.map((message, i) => (
