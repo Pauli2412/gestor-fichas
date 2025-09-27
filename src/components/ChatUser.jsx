@@ -398,19 +398,21 @@ const ChatUser = () => {
 
   // Simulación de login
   const handleLogin = async (phone) => {
-    await new Promise(res => setTimeout(res, 1500));
+    try {
+      const data = await lookupUsuario(phone);
 
-    // Simulación: algunos números son "encontrados", otros no
-    const existingNumbers = ['+5491123456789', '+5491987654321'];
-    const normalizedPhone = phone.startsWith('+') ? phone : '+549' + phone.replace(/^0+/, '');
-
-    if (existingNumbers.includes(normalizedPhone) || existingNumbers.includes(phone)) {
-      addMessage('✅ Usuario verificado.', 'bot');
-      setIsRegistered(true);
-      addMainOptions();
-    } else {
-      addMessage('No encontramos tu usuario. ¿Deseas registrarte para avanzar?', 'bot');
-      addRegisterAskOptions();
+      if (data.status === "ok" && data.meta?.user) {
+        addMessage(`✅ Usuario detectado: ${data.meta.user.nombre}`, "bot");
+        setIsRegistered(true);
+        addMainOptions();
+      } else {
+        addMessage("ℹ️ No encontramos tu usuario. ¿Deseas registrarte para avanzar?", "bot");
+        addRegisterAskOptions();
+        setIsRegistered(false);
+      }
+    } catch (err) {
+      console.error("Error consultando /lookup-usuario:", err);
+      addMessage("⚠️ Hubo un error consultando tu usuario. Intenta más tarde.", "bot");
       setIsRegistered(false);
     }
   };
