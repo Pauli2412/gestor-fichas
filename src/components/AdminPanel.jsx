@@ -1,378 +1,551 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faComments,
+  faUsers,
+  faFileAlt,
+  faCog,
+  faSignOutAlt,
+  faPaperPlane,
+} from "@fortawesome/free-solid-svg-icons";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./AdminPanel.css";
-import api from "../services/api";
 
-// Helpers
-const getTimeAgo = (date) => {
-  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-  let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + " años";
-  interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + " meses";
-  interval = seconds / 86400;
-  if (interval > 1) return Math.floor(interval) + " días";
-  interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + " horas";
-  interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + " mins";
-  return Math.floor(seconds) + " segs";
-};
-
-const getStatusText = (status) => {
-  const statuses = {
-    active: "ACTIVO",
-    waiting: "ESPERANDO",
-    new: "NUEVO",
-    closed: "CERRADO",
-  };
-  return statuses[status] || status;
-};
-
-// Componente de una conversación en la lista
-const ConversationItem = ({ conversation, isActive, onSelect }) => {
-  const lastMessage = conversation.messages?.at(-1);
-  const timeAgo = getTimeAgo(conversation.lastActivity);
-  const initials =
-    conversation.userName?.split(" ").map((n) => n[0]).join("").substring(0, 2) ||
-    "U";
-
-  return (
-    <div
-      className={`conversation-item ${isActive ? "active" : ""}`}
-      onClick={() => onSelect(conversation.id)}
-    >
-      {conversation.unread && <div className="unread-indicator"></div>}
-
-      <div className="conversation-header">
-        <div className="user-info">
-          <div className="user-avatar">{initials}</div>
-          <div className="user-details">
-            <h4>{conversation.userName || "Usuario"}</h4>
-            <p>{conversation.userPhone}</p>
-          </div>
-        </div>
-        <div className="conversation-meta">
-          <div className="conversation-time">{timeAgo}</div>
-          <div className={`status-badge status-${conversation.status}`}>
-            {getStatusText(conversation.status)}
-          </div>
-        </div>
-      </div>
-
-      <div className="conversation-preview">
-        {lastMessage?.content?.substring(0, 80)}
-        {lastMessage?.content?.length > 80 ? "..." : ""}
-      </div>
-
-      {conversation.assignedAdmin && (
-        <div
-          style={{
-            fontSize: "11px",
-            color: "var(--text-muted)",
-            marginTop: "8px",
-          }}
-        >
-          <i className="fas fa-user"></i> {conversation.assignedAdmin}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Componente de un mensaje
-const MessageItem = ({ message }) => {
-  const isBot = message.type === "bot";
-  const isUser = message.type === "user";
-  const isAdmin = message.type === "admin";
-
-  return (
-    <div className="message-group">
-      <div
-        className={`message ${isBot ? "message-bot" : ""} ${
-          isUser ? "message-user" : ""
-        } ${isAdmin ? "message-admin" : ""}`}
-      >
-        {message.content}
-        <div className="message-meta">
-          <div className="message-time">{getTimeAgo(message.timestamp)}</div>
-          {isAdmin && (
-            <div className="message-sender">{message.adminName || "Admin"}</div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Panel principal
 const AdminPanel = () => {
+  const [activeMenu, setActiveMenu] = useState("conversations");
   const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(null);
-  const [filter, setFilter] = useState("all");
-  const [theme, setTheme] = useState("dark");
-  const [adminMode, setAdminMode] = useState(true);
-  const [messageInput, setMessageInput] = useState("");
-  const messagesEndRef = useRef(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [adminMessage, setAdminMessage] = useState(""); // 💬 input admin
 
-  const activeConversation = conversations.find(
-    (c) => c.id === activeConversationId
-  );
-
-  // Cargar conversaciones desde backend
+  // 🔹 Cargar conversaciones activas
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await api.getConversations(); // usa /admin/conversation
-        setConversations(data.conversations || []);
-      } catch (err) {
-        console.error("❌ Error al cargar conversaciones:", err.message);
-      }
-    };
-    fetchData();
-  }, []);
-
-  // Scroll automático
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (activeMenu === "conversations") {
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/conversations`)
+        .then((res) => res.json())
+        .then((data) => setConversations(data.conversations || []))
+        .catch((err) => console.error("Error cargando conversaciones:", err));
     }
-  }, [activeConversationId, conversations]);
+  }, [activeMenu]);
 
-  // Tema claro/oscuro
+  // 🔹 Cargar historial cuando se selecciona una conversación
   useEffect(() => {
-    if (theme === "light") {
-      document.body.setAttribute("data-theme", "light");
-    } else {
-      document.body.removeAttribute("data-theme");
+    if (selectedConversation) {
+      fetch(`${import.meta.env.VITE_N8N_BASE}/chat-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telefono: selectedConversation.telefono }),
+      })
+        .then((res) => res.json())
+        .then((data) => setChatHistory(data.history || []))
+        .catch((err) => console.error("Error cargando historial:", err));
     }
-  }, [theme]);
+  }, [selectedConversation]);
 
-  const handleSelectConversation = (id) => {
-    setActiveConversationId(id);
-    setConversations((convs) =>
-      convs.map((c) => (c.id === id ? { ...c, unread: false } : c))
-    );
-  };
-
-  const handleSendMessage = async () => {
-    if (!messageInput.trim() || !activeConversation) return;
-
-    const newMessage = {
-      id: Date.now(),
-      sender: adminMode ? "admin" : "bot",
-      content: messageInput,
-      timestamp: new Date(),
-      type: adminMode ? "admin" : "bot",
-      adminName: adminMode ? "Tú (Admin)" : null,
-    };
-
-    // Mostrar en UI
-    setConversations((convs) =>
-      convs.map((c) =>
-        c.id === activeConversationId
-          ? {
-              ...c,
-              messages: [...c.messages, newMessage],
-              lastActivity: new Date(),
-            }
-          : c
-      )
-    );
-
-    setMessageInput("");
+  // 🔹 Enviar respuesta del admin
+  const handleSendAdminMessage = async () => {
+    if (!adminMessage.trim() || !selectedConversation) return;
 
     try {
-      // Aquí podrías llamar al backend: /admin/respond
-      // await api.respondAdmin(activeConversation.id, newMessage.content);
+      const response = await fetch(
+        `${import.meta.env.VITE_N8N_BASE}/admin/respond`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            telefono: selectedConversation.telefono,
+            mensaje: adminMessage,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error enviando mensaje");
+
+      // 💾 Guardar mensaje en UI
+      const newMsg = {
+        rol: "admin",
+        contenido: adminMessage,
+        createdAt: new Date().toISOString(),
+      };
+
+      setChatHistory((prev) => [...prev, newMsg]);
+      setAdminMessage(""); // limpiar input
     } catch (err) {
-      console.error("❌ Error enviando mensaje:", err.message);
+      console.error("Error enviando mensaje admin:", err);
+      alert("⚠️ No se pudo enviar el mensaje.");
     }
   };
 
-  const filteredConversations = conversations.filter(
-    (conv) => filter === "all" || conv.status === filter
-  );
+  // Estados extra arriba del componente
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchHistory, setSearchHistory] = useState([]);
 
-  const stats = {
-    active: conversations.filter((c) => c.status === "active").length,
-    waiting: conversations.filter((c) => c.status === "waiting").length,
-    new: conversations.filter((c) => c.status === "new").length,
-    totalToday: conversations.length,
+  // 🔹 Buscar usuario
+  const handleSearchUser = async () => {
+    if (!searchQuery.trim()) return;
+
+    try {
+      // 1. Buscar datos del usuario
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/search-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchQuery }),
+      });
+
+      if (!res.ok) throw new Error("Error buscando usuario");
+      const data = await res.json();
+
+      if (!data.user) {
+        alert("Usuario no encontrado");
+        setSearchResult(null);
+        setSearchHistory([]);
+        return;
+      }
+
+      setSearchResult(data.user);
+
+      // 2. Cargar historial
+      const histRes = await fetch(`${import.meta.env.VITE_N8N_BASE}/chat-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telefono: data.user.telefono }),
+      });
+
+      const histData = await histRes.json();
+      setSearchHistory(histData.history || []);
+    } catch (err) {
+      console.error("Error en búsqueda:", err);
+      alert("⚠️ No se pudo buscar el usuario.");
+    }
   };
 
+  // Estados
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+
+  // Cargar usuarios pendientes
+  const fetchPendingUsers = async () => {
+    setLoadingPending(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/pending-users`);
+      const data = await res.json();
+      setPendingUsers(data.users || []);
+    } catch (err) {
+      console.error("Error cargando usuarios pendientes:", err);
+      alert("⚠️ No se pudieron cargar los usuarios pendientes.");
+    } finally {
+      setLoadingPending(false);
+    }
+  };
+
+  // Aprobar usuario
+  const handleApproveUser = async (userId) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/approve-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) throw new Error("Error aprobando usuario");
+      alert("Usuario aprobado ✅");
+      fetchPendingUsers();
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ No se pudo aprobar el usuario.");
+    }
+  };
+
+  // Rechazar usuario
+  const handleRejectUser = async (userId) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/reject-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) throw new Error("Error rechazando usuario");
+      alert("Usuario rechazado ❌");
+      fetchPendingUsers();
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ No se pudo rechazar el usuario.");
+    }
+  };
+
+  useEffect(() => {
+    if (activeMenu === "pending-users") {
+      fetchPendingUsers();
+    }
+  }, [activeMenu]);
+
+  // Estados Reclamos
+  const [complaints, setComplaints] = useState([]);
+  const [loadingComplaints, setLoadingComplaints] = useState(false);
+
+  // Cargar reclamos
+  const fetchComplaints = async () => {
+    setLoadingComplaints(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/complaints`);
+      const data = await res.json();
+      setComplaints(data.complaints || []);
+    } catch (err) {
+      console.error("Error cargando reclamos:", err);
+      alert("⚠️ No se pudieron cargar los reclamos.");
+    } finally {
+      setLoadingComplaints(false);
+    }
+  };
+
+  // Actualizar estado de un reclamo
+  const updateComplaintStatus = async (id, estado) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/complaints/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, estado }),
+      });
+      if (!res.ok) throw new Error("Error actualizando reclamo");
+      alert(`Reclamo marcado como ${estado}`);
+      fetchComplaints();
+    } catch (err) {
+      console.error(err);
+      alert("⚠️ No se pudo actualizar el reclamo.");
+    }
+  };
+
+  useEffect(() => {
+    if (activeMenu === "complaints") {
+      fetchComplaints();
+    }
+  }, [activeMenu]);
+
+
   return (
-    <div className="admin-container">
+    <div className="d-flex vh-100">
       {/* Sidebar */}
-      <div className="admin-sidebar">
-        <div className="admin-header">
-          <div className="admin-logo">
-            <i className="fas fa-shield-alt"></i>
-            <h1>Admin Panel</h1>
-          </div>
-          <div className="admin-controls">
+      <div
+        className="bg-dark text-white d-flex flex-column p-3"
+        style={{ width: "250px" }}
+      >
+        <h2 className="text-center mb-4">AdminPanel</h2>
+
+        <ul className="nav nav-pills flex-column mb-auto">
+          <li className="nav-item">
             <button
-              className="control-btn"
-              onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+              className={`nav-link text-start ${activeMenu === "conversations" ? "active" : "text-white"
+                }`}
+              onClick={() => setActiveMenu("conversations")}
             >
-              <i
-                className={`fas ${theme === "dark" ? "fa-moon" : "fa-sun"}`}
-              ></i>
+              <FontAwesomeIcon icon={faComments} className="me-2" />
+              Conversaciones
             </button>
+          </li>
+
+
+          <li>
             <button
-              className="control-btn"
-              onClick={() => window.location.reload()}
+              className={`nav-link text-start ${activeMenu === "users" ? "active" : "text-white"
+                }`}
+              onClick={() => setActiveMenu("users")}
             >
-              <i className="fas fa-sync-alt"></i>
+              <FontAwesomeIcon icon={faUsers} className="me-2" />
+              Usuarios
             </button>
-          </div>
-        </div>
+          </li>
+          <li className={`list-group-item ${activeMenu === "pending-users" ? "active" : ""}`}
+            onClick={() => setActiveMenu("pending-users")}>
+            Usuarios Pendientes
+          </li>
+          <li>
+            <button
+              className={`nav-link text-start ${activeMenu === "complaints" ? "active" : "text-white"
+                }`}
+              onClick={() => setActiveMenu("complaints")}
+            >
+              <FontAwesomeIcon icon={faFileAlt} className="me-2" />
+              Reclamos
+            </button>
+          </li>
+          <li>
+            <button
+              className={`nav-link text-start ${activeMenu === "settings" ? "active" : "text-white"
+                }`}
+              onClick={() => setActiveMenu("settings")}
+            >
+              <FontAwesomeIcon icon={faCog} className="me-2" />
+              Configuración
+            </button>
+          </li>
+        </ul>
 
-        {/* Stats */}
-        <div className="stats-section">
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-number">{stats.active}</div>
-              <div className="stat-label">Activos</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">{stats.waiting}</div>
-              <div className="stat-label">Esperando</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">{stats.new}</div>
-              <div className="stat-label">Nuevos</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">{stats.totalToday}</div>
-              <div className="stat-label">Total Hoy</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Lista de conversaciones */}
-        <div className="conversations-section">
-          <div className="section-header">
-            <h3 className="section-title">Conversaciones</h3>
-            <div className="filter-tabs">
-              {["all", "active", "waiting", "new"].map((f) => (
-                <button
-                  key={f}
-                  className={`filter-tab ${filter === f ? "active" : ""}`}
-                  onClick={() => setFilter(f)}
-                >
-                  {getStatusText(f)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="conversations-list">
-            {filteredConversations.length > 0 ? (
-              filteredConversations.map((conv) => (
-                <ConversationItem
-                  key={conv.id}
-                  conversation={conv}
-                  isActive={conv.id === activeConversationId}
-                  onSelect={handleSelectConversation}
-                />
-              ))
-            ) : (
-              <div className="empty-list-state">No hay conversaciones</div>
-            )}
-          </div>
-        </div>
+        <hr />
+        <button className="btn btn-outline-light mt-auto">
+          <FontAwesomeIcon icon={faSignOutAlt} className="me-2" />
+          Salir
+        </button>
       </div>
 
-      {/* Chat */}
-      <div className="chat-section">
-        {activeConversation ? (
-          <>
-            <div className="chat-header">
-              <div className="chat-user-info">
-                <div className="chat-avatar">
-                  {activeConversation.userName
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .substring(0, 2) || "U"}
-                </div>
-                <div className="chat-details">
-                  <h3>{activeConversation.userName || "Usuario"}</h3>
-                  <p>
-                    {activeConversation.userPhone} •{" "}
-                    {getStatusText(activeConversation.status)}
-                  </p>
-                </div>
-              </div>
+      {/* Main Content */}
+      <div className="flex-grow-1 p-4 d-flex flex-column">
+        <h1 className="mb-4">Panel de Administración</h1>
+
+        {activeMenu === "conversations" && (
+          <div className="d-flex flex-grow-1">
+            {/* Lista de conversaciones */}
+            <div
+              className="border-end pe-3"
+              style={{ width: "280px", overflowY: "auto" }}
+            >
+              <h4>📥 Conversaciones activas</h4>
+              <ul className="list-group">
+                {conversations.map((c, idx) => (
+                  <li
+                    key={idx}
+                    className={`list-group-item list-group-item-action ${selectedConversation?.telefono === c.telefono
+                      ? "active"
+                      : ""
+                      }`}
+                    onClick={() => setSelectedConversation(c)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <strong>{c.nombre || "Usuario"}</strong>
+                    <br />
+                    <small>{c.telefono}</small>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="messages-area">
-              {activeConversation.messages?.map((msg) => (
-                <MessageItem key={msg.id} message={msg} />
+            {/* Chat seleccionado */}
+            <div className="flex-grow-1 ps-3 d-flex flex-column">
+              {selectedConversation ? (
+                <>
+                  <h4>
+                    Chat con {selectedConversation.nombre || "Usuario"} (
+                    {selectedConversation.telefono})
+                  </h4>
+                  <div
+                    className="border flex-grow-1 p-3 mb-3"
+                    style={{ overflowY: "auto", background: "#f9f9f9" }}
+                  >
+                    {chatHistory.length === 0 ? (
+                      <p className="text-muted">No hay mensajes aún.</p>
+                    ) : (
+                      chatHistory.map((m, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-2 mb-2 rounded ${m.rol === "user"
+                            ? "bg-light text-dark"
+                            : m.rol === "bot"
+                              ? "bg-primary text-white"
+                              : "bg-success text-white"
+                            }`}
+                          style={{ maxWidth: "75%" }}
+                        >
+                          <div>{m.contenido}</div>
+                          <small className="d-block text-end">
+                            {new Date(m.createdAt).toLocaleTimeString("es-AR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </small>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* 🔹 Caja de texto para responder */}
+                  <div className="d-flex">
+                    <input
+                      type="text"
+                      className="form-control me-2"
+                      placeholder="Escribe una respuesta..."
+                      value={adminMessage}
+                      onChange={(e) => setAdminMessage(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleSendAdminMessage()
+                      }
+                    />
+                    <button
+                      className="btn btn-success"
+                      onClick={handleSendAdminMessage}
+                    >
+                      <FontAwesomeIcon icon={faPaperPlane} />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted flex-grow-1 d-flex align-items-center justify-content-center">
+                  Selecciona una conversación para ver el chat.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeMenu === "users" && (
+          <div className="d-flex flex-column flex-grow-1">
+            <h3>👤 Usuarios</h3>
+            <p>Busca usuarios por nombre o teléfono.</p>
+
+            {/* 🔹 Barra de búsqueda */}
+            <div className="input-group mb-3" style={{ maxWidth: "400px" }}>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Buscar por nombre o teléfono..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button className="btn btn-primary" onClick={handleSearchUser}>
+                Buscar
+              </button>
+            </div>
+
+            {/* 🔹 Resultado de la búsqueda */}
+            {searchResult && (
+              <div className="border rounded p-3 bg-light">
+                <h5>📌 Datos del Usuario</h5>
+                <p><strong>Nombre:</strong> {searchResult.nombre || "—"}</p>
+                <p><strong>Teléfono:</strong> {searchResult.telefono}</p>
+                <p><strong>CUIL:</strong> {searchResult.cuil || "—"}</p>
+                <p><strong>Plataformas:</strong> {searchResult.plataformas?.join(", ") || "—"}</p>
+
+                <h6 className="mt-3">🕒 Historial de chat</h6>
+                <div className="border p-2" style={{ maxHeight: "300px", overflowY: "auto" }}>
+                  {searchHistory.length === 0 ? (
+                    <p className="text-muted">No hay mensajes.</p>
+                  ) : (
+                    searchHistory.map((m, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-2 mb-2 rounded ${m.rol === "user"
+                          ? "bg-light text-dark"
+                          : m.rol === "bot"
+                            ? "bg-primary text-white"
+                            : "bg-success text-white"
+                          }`}
+                      >
+                        {m.contenido}
+                        <br />
+                        <small className="d-block text-end">
+                          {new Date(m.createdAt).toLocaleString("es-AR")}
+                        </small>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {activeMenu === "pending-users" && (
+          <div className="d-flex flex-column flex-grow-1">
+            <h3>👥 Usuarios Pendientes</h3>
+            <p>Lista de usuarios registrados que requieren aprobación.</p>
+
+            {loadingPending && <p>Cargando...</p>}
+
+            {!loadingPending && pendingUsers.length === 0 && (
+              <p className="text-muted">No hay usuarios pendientes.</p>
+            )}
+
+            <ul className="list-group">
+              {pendingUsers.map((u) => (
+                <li
+                  key={u.id}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  <div>
+                    <strong>{u.nombre || "—"}</strong> <br />
+                    Tel: {u.phone} <br />
+                    CUIL: {u.cuil || "—"} <br />
+                    Plataformas: {u.plataformas || "—"}
+                  </div>
+                  <div>
+                    <button
+                      className="btn btn-success btn-sm me-2"
+                      onClick={() => handleApproveUser(u.id)}
+                    >
+                      ✅ Aprobar
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleRejectUser(u.id)}
+                    >
+                      ❌ Rechazar
+                    </button>
+                  </div>
+                </li>
               ))}
-              <div ref={messagesEndRef} />
-            </div>
+            </ul>
+          </div>
+        )}
 
-            <div className="admin-input-section">
-              <div className="admin-mode-toggle">
-                <i
-                  className="fas fa-robot"
-                  style={{
-                    color: adminMode ? "var(--text-secondary)" : "var(--success)",
-                  }}
-                ></i>
-                <span>
-                  Modo: {adminMode ? "Administrador" : "Bot (Respuesta Automática)"}
-                </span>
-                <div
-                  className={`toggle-switch ${adminMode ? "active" : ""}`}
-                  onClick={() => setAdminMode((a) => !a)}
-                >
-                  <div className="toggle-handle"></div>
-                </div>
-                <i
-                  className="fas fa-user-shield"
-                  style={{
-                    color: adminMode ? "var(--success)" : "var(--text-secondary)",
-                  }}
-                ></i>
-              </div>
 
-              <div className="input-container">
-                <textarea
-                  className="admin-input"
-                  placeholder={
-                    adminMode
-                      ? "Escribe tu respuesta como administrador..."
-                      : "Escribe una respuesta rápida del bot..."
-                  }
-                  rows="1"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && !e.shiftKey && handleSendMessage()
-                  }
-                />
-                <button
-                  className="send-btn"
-                  onClick={handleSendMessage}
-                  disabled={!messageInput.trim()}
+        {activeMenu === "complaints" && (
+          <div className="d-flex flex-column flex-grow-1">
+            <h3>📝 Reclamos</h3>
+            <p>Listado de reclamos enviados por los usuarios.</p>
+
+            {loadingComplaints && <p>Cargando...</p>}
+
+            {!loadingComplaints && complaints.length === 0 && (
+              <p className="text-muted">No hay reclamos registrados.</p>
+            )}
+
+            <ul className="list-group">
+              {complaints.map((c) => (
+                <li
+                  key={c.id}
+                  className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  <i className="fas fa-paper-plane"></i>
-                </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="empty-state">
-            <i className="fas fa-comments"></i>
-            <h3>Selecciona una conversación</h3>
-            <p>
-              Elige una de la lista para ver los mensajes
-              <br />
-              y responder como administrador
-            </p>
+                  <div>
+                    <strong>{c.user?.nombre || "Usuario"}</strong> ({c.user?.telefono})<br />
+                    <em>{c.mensaje}</em><br />
+                    Estado:{" "}
+                    <span
+                      className={`badge ${c.estado === "pendiente" ? "bg-warning" : "bg-success"
+                        }`}
+                    >
+                      {c.estado}
+                    </span>
+                    <br />
+                    <small>
+                      {new Date(c.createdAt).toLocaleString("es-AR")}
+                    </small>
+                  </div>
+                  <div>
+                    {c.estado === "pendiente" && (
+                      <>
+                        <button
+                          className="btn btn-success btn-sm me-2"
+                          onClick={() => updateComplaintStatus(c.id, "atendido")}
+                        >
+                          ✅ Atendido
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => updateComplaintStatus(c.id, "rechazado")}
+                        >
+                          ❌ Rechazar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+
+        {activeMenu === "settings" && (
+          <div>
+            <h3>⚙️ Configuración</h3>
+            <p>Ajustes del panel de administración.</p>
           </div>
         )}
       </div>

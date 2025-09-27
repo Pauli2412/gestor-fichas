@@ -413,8 +413,11 @@ const ChatUser = () => {
     try {
       const data = await lookupUsuario(phone);
 
-      if (data.status === "ok" && data.meta?.user) {
-        addMessage(`✅ Usuario detectado: ${data.meta.user.nombre}`, "bot");
+      if (isOk && user) {
+        addMessage(`✅ Usuario detectado: ${user.nombre}`, "bot");
+        if (Array.isArray(user.plataformas) && user.plataformas.length) {
+          addMessage(`📋 Plataformas: ${user.plataformas.join(", ")}`, "bot");
+        }
         setIsRegistered(true);
         addMainOptions();
       } else {
