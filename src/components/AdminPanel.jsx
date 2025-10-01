@@ -31,6 +31,10 @@ const AdminPanel = () => {
   const [conversationSearch, setConversationSearch] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
+  // Estados para admins
+  const [admins, setAdmins] = useState([]);
+  const [newAdmin, setNewAdmin] = useState({ user: "", pass: "", email: "", role: "admin" });
+
   // Estados para búsqueda
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState(null);
@@ -287,6 +291,68 @@ const AdminPanel = () => {
     }
   };
 
+  // Cargar lista de admins
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/users`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+      const data = await res.json();
+      if (data.ok) setAdmins(data.admins);
+    } catch (err) {
+      console.error("Error cargando admins:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeMenu === "admins") {
+      fetchAdmins();
+    }
+  }, [activeMenu]);
+
+  // Crear admin
+  const handleCreateAdmin = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify(newAdmin),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("Admin creado con éxito");
+        setNewAdmin({ user: "", pass: "", email: "", role: "admin" });
+        fetchAdmins();
+      } else {
+        alert(data.error || "Error creando admin");
+      }
+    } catch (err) {
+      console.error("Error creando admin:", err);
+    }
+  };
+
+  // Eliminar admin
+  const handleDeleteAdmin = async (id) => {
+    if (!window.confirm("¿Eliminar este admin?")) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/users/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("Admin eliminado");
+        fetchAdmins();
+      }
+    } catch (err) {
+      console.error("Error eliminando admin:", err);
+    }
+  };
+
+
   return (
     <div className="admin-container">
       {/* Mobile Header */}
@@ -366,6 +432,18 @@ const AdminPanel = () => {
               >
                 <FontAwesomeIcon icon={faCog} className="nav-icon" />
                 <span>Configuración</span>
+              </button>
+            </li>
+            <li>
+              <button
+                className={`nav-link ${activeMenu === "admins" ? "active" : ""}`}
+                onClick={() => {
+                  setActiveMenu("admins");
+                  closeSidebar();
+                }}
+              >
+                <FontAwesomeIcon icon={faUsers} className="nav-icon" />
+                <span>Administradores</span>
               </button>
             </li>
           </ul>
@@ -809,6 +887,89 @@ const AdminPanel = () => {
               <p className="section-description">Ajustes del panel de administración</p>
               <div className="settings-placeholder">
                 <p>Configuraciones del sistema próximamente...</p>
+              </div>
+            </div>
+          )}
+          {activeMenu === "admins" && (
+            <div className="admins-section">
+              <h3 className="section-title">
+                <FontAwesomeIcon icon={faUsers} />
+                Administradores
+              </h3>
+              <p className="section-description">Gestiona las cuentas de administradores</p>
+
+              {/* Crear nuevo admin */}
+              <div className="create-admin-form">
+                <h4>Crear nuevo Admin</h4>
+                <input
+                  type="text"
+                  placeholder="Usuario"
+                  value={newAdmin.user}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, user: e.target.value })}
+                />
+                <input
+                  type="password"
+                  placeholder="Contraseña"
+                  value={newAdmin.pass}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, pass: e.target.value })}
+                />
+                <input
+                  type="email"
+                  placeholder="Email (opcional)"
+                  value={newAdmin.email}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                />
+                <select
+                  value={newAdmin.role}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })}
+                >
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">SuperAdmin</option>
+                </select>
+                <button onClick={handleCreateAdmin}>Crear</button>
+              </div>
+
+              {/* Listado de admins */}
+              <div className="admins-list">
+                <h4>Lista de administradores</h4>
+                {admins.length === 0 ? (
+                  <p className="empty">No hay administradores registrados</p>
+                ) : (
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {admins.map((a) => (
+                        <tr key={a.id}>
+                          <td>{a.user}</td>
+                          <td>{a.email || "—"}</td>
+                          <td>
+                            <span
+                              className={`role-badge ${a.role === "superadmin" ? "role-superadmin" : "role-admin"
+                                }`}
+                            >
+                              {a.role}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="danger-btn"
+                              onClick={() => handleDeleteAdmin(a.id)}
+                            >
+                              Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}
