@@ -274,7 +274,6 @@ const AdminPanel = () => {
 
   // Obtener último mensaje de conversación
   const getLastMessage = (conversation) => {
-    // Aquí podrías obtener el último mensaje real de la conversación
     return "Último mensaje...";
   };
 
@@ -291,18 +290,18 @@ const AdminPanel = () => {
   return (
     <div className="admin-container">
       {/* Mobile Header */}
-      <div className="mobile-header d-md-none">
+      <div className="mobile-header">
         <button className="mobile-toggle" onClick={toggleSidebar}>
           <FontAwesomeIcon icon={faBars} />
         </button>
-        <h2>AdminPanel</h2>
+        <h2 className="mobile-title">AdminPanel</h2>
       </div>
 
       {/* Sidebar */}
       <div className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
-          <h2 className="d-none d-md-block">AdminPanel</h2>
-          <button className="close-btn d-md-none" onClick={closeSidebar}>
+          <h2 className="sidebar-logo">AdminPanel</h2>
+          <button className="close-btn" onClick={closeSidebar}>
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
@@ -380,7 +379,7 @@ const AdminPanel = () => {
       </div>
 
       {/* Overlay for mobile */}
-      {sidebarOpen && <div className="sidebar-overlay d-md-none" onClick={closeSidebar}></div>}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
 
       {/* Main Content */}
       <div className="main-content">
